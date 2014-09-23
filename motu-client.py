@@ -27,7 +27,6 @@
 #  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 import urllib
-import urllib2
 import traceback
 import platform
 import sys
@@ -43,6 +42,24 @@ import logging.config
 import ConfigParser
 import optparse
 import socket
+
+# https://bugs.launchpad.net/ubuntu/+source/openssl/+bug/965371
+import ssl
+
+def connect(self):
+    "Connect to a host on a given (SSL) port."
+    sock = socket.create_connection((self.host, self.port),
+                                        self.timeout, self.source_address)
+    if self._tunnel_host:
+        self.sock = sock
+        self._tunnel()
+    self.sock = ssl.wrap_socket(sock, self.key_file,
+                                self.cert_file,
+                                ssl_version=ssl.PROTOCOL_TLSv1)
+
+httplib.HTTPSConnection.connect = connect
+import urllib2
+
 
 # The necessary required version of Python interpreter
 REQUIRED_VERSION = (2,5)
